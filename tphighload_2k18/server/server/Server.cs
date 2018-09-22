@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -43,8 +44,6 @@ namespace server
 
             if (Settings.ThreadLimit > 0)
             {
-				// магия
-                // установка макс количества подключений к пулу потоков
                 Console.WriteLine($"ThreadPool.SetMaxThreads({Settings.ThreadLimit}, {Settings.ThreadLimit})");
                 ThreadPool.SetMaxThreads(Settings.ThreadLimit, Settings.ThreadLimit);
             }
@@ -80,29 +79,30 @@ namespace server
 
                     do
                     {
-                    	string rawContent = await ReadRequest(networkStream);
-						Console.WriteLine("rawContent = {0}", rawContent);
-						HttpRequest request = new HttpRequest(rawContent);
-						HttpResponse response = new HttpResponse();
+                        Stopwatch stopWatch = new Stopwatch();
+                        stopWatch.Start();
+
+						var rawContent = await ReadRequest(networkStream);                  
+                        var request = new HttpRequest(rawContent);
+                        var response = new HttpResponse();
 
                         try
                         {
 							RequestWrapper.Set(request, response);
 							ContentWrapper.Set(request, response);
-							HeadersWrapper.Set(response);
-                            DefaultConnectionManager.Set(response);
-							ResponseWrapper.Set(response);
+							HeadersWrapper.Set(request, response);
+                            DefaultConnectionManager.Set(request, response);
+							ResponseWrapper.Set(request, response);
                         }
                         catch (Exception)
                         {
-							throw new Exception();
+                            throw;
                         }
                   
                         // асинхронно отправим ответ
-						await SendResponse(networkStream, 
-						                   response.RawHeadersResponse, 
-						                   response.ResponseContentFilePath, 
-						                   response.ContentLength);                
+						await SendResponse(networkStream, response.RawHeadersResponse, response.ResponseContentFilePath, response.ContentLength);
+
+                        stopWatch.Stop();                  
                         keepConnection = response.KeepAlive;
                     } while (keepConnection);
                 }
@@ -157,12 +157,12 @@ namespace server
 					byte[] headerBytes = Encoding.UTF8.GetBytes(header);
 					await networkStream.WriteAsync(headerBytes, 0, headerBytes.Length, 
 					                               cancellationTokenSource.Token);
-                    
+
 					if (contentFilePath != null)
                     {
 						using (var fileStream = new FileStream(contentFilePath, FileMode.Open, FileAccess.Read))
                         {
-							await fileStream.CopyToAsync(networkStream, Constants.DEFAULT_FILE_COPY_BUFFER, 
+							await fileStream.CopyToAsync(networkStream, Constants.DEFAULT_FILE_COPY_BUFFER,
 							                             cancellationTokenSource.Token);
                         }
                     }

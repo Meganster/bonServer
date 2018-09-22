@@ -35,21 +35,20 @@ namespace server
             }
 
             string path = request.Url;
-			Console.WriteLine("path = {0}", path);
             if (string.IsNullOrWhiteSpace(path))
             {
                 response.HttpStatusCode = HttpStatusCode.BadRequest;
                 return;
             }
 
-			bool isForbiden = false;
+			bool need403 = false;
             if (path == "/")
             {
                 path = this.settings.DefaultDirectioryFile;
             }
             else if (path[path.Length - 1] == '/')
             {
-				isForbiden = true;
+                need403 = true;
                 path = path + this.settings.DefaultDirectioryFile;
             }
 
@@ -58,9 +57,8 @@ namespace server
                 path = path.Substring(1);
             }
 
-            string absolutePath = Path.Combine(this.settings.Root, path);
+            var absolutePath = Path.Combine(this.settings.Root, path);
             FileInfo fileInfo;
-
             try
             {
                 fileInfo = new FileInfo(absolutePath);
@@ -72,7 +70,7 @@ namespace server
 
             if (fileInfo == null || !fileInfo.Exists || !fileInfo.FullName.StartsWith(this.settings.Root))
             {
-				response.HttpStatusCode = isForbiden ? HttpStatusCode.Forbidden : HttpStatusCode.NotFound;
+                response.HttpStatusCode = need403 ? HttpStatusCode.Forbidden : HttpStatusCode.NotFound;
                 return;
             }
 
