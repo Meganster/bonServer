@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
@@ -12,23 +11,27 @@ namespace server
     public class Server
     {
         private Settings _settings;
-        private RequestParser _requestParser;
+		private RequestWrapper _requestWrapper;
         private ContentWrapper _contentWrapper;
-        private HeadersWrapper _defaultHeadersWriter;
+        private HeadersWrapper _headersWrapper;
         private ConnectionManager _connectionManager;
         private ResponseWrapper _responseWrapper;
 
         public Settings Settings { get => _settings; set => _settings = value; }
-        public RequestParser RequestParser { get => _requestParser; set => _requestParser = value; }
+		public RequestWrapper RequestWrapper { get => _requestWrapper; set => _requestWrapper = value; }
         public ContentWrapper ContentSearch { get => _contentWrapper; set => _contentWrapper = value; }
-        public HeadersWrapper DefaultHeadersWriter { get => _defaultHeadersWriter; set => _defaultHeadersWriter = value; }
+		public HeadersWrapper HeadersWrapper { get => _headersWrapper; set => _headersWrapper = value; }
         public ConnectionManager DefaultConnectionManager { get => _connectionManager; set => _connectionManager = value; }
-        public ResponseWrapper ResponseWriter { get => _responseWrapper; set => _responseWrapper = value; }
+		public ResponseWrapper ResponseWrapper { get => _responseWrapper; set => _responseWrapper = value; }
 
         public Server(Settings settings)
         {
             this.Settings = settings;
+			this.RequestWrapper = new RequestWrapper();
             this.ContentSearch = new ContentWrapper(settings);
+			this.HeadersWrapper = new HeadersWrapper();
+			this.DefaultConnectionManager = new ConnectionManager();
+			this.ResponseWrapper = new ResponseWrapper();
         }
         
         public async Task Run()
@@ -54,7 +57,7 @@ namespace server
                 while (true)
                 {
                     var tcpClient = await tcpListener.AcceptTcpClientAsync();
-                    Processing(tcpClient);
+                    ProcessingAsync(tcpClient);
                 }
             }
             finally
@@ -66,15 +69,11 @@ namespace server
             }
         }
 
-        private async Task Processing(TcpClient tcpClient)
-        {
-            var connectionId = Guid.NewGuid().ToString();
-
+        private async Task ProcessingAsync(TcpClient tcpClient)
+		{
             try
-            {
-                Log(connectionId, "begin request");
-
-                using (NetworkStream stream = tcpClient.GetStream())
+			{
+				using (NetworkStream networkStream = tcpClient.GetStream())
                 {
                     bool keepConnection = false;
 
@@ -83,88 +82,68 @@ namespace server
                         Stopwatch stopWatch = new Stopwatch();
                         stopWatch.Start();
 
-                        var rawContent = await ReadRequest(stream);
-
-                        LogRequest(connectionId, rawContent);
-
+						var rawContent = await ReadRequest(networkStream);                  
                         var request = new HttpRequest(rawContent);
                         var response = new HttpResponse();
 
                         try
                         {
-                            RequestParser.Invoke(request, response);
-                            ContentSearch.Invoke(request, response);
-                            DefaultHeadersWriter.Invoke(request, response);
-                            DefaultConnectionManager.Invoke(request, response);
-                            ResponseWriter.Invoke(request, response);
+							RequestWrapper.Set(request, response);
+							ContentSearch.Set(request, response);
+							HeadersWrapper.Set(request, response);
+                            DefaultConnectionManager.Set(request, response);
+							ResponseWrapper.Set(request, response);
                         }
                         catch (Exception)
                         {
-                            //Log(connectionId, $" in middleware {m.GetType().FullName}");
                             throw;
                         }
-
-                        LogResponse(connectionId, response.RawHeadersResponse);
-
+                  
                         // асинхронно отправим ответ
-                        await SendResponse(stream, response.RawHeadersResponse, response.ResponseContentFilePath, response.ContentLength);
+						await SendResponse(networkStream, response.RawHeadersResponse, response.ResponseContentFilePath, response.ContentLength);
 
-                        stopWatch.Stop();
-                        Log(connectionId, $"response complete in {stopWatch.ElapsedMilliseconds} ms");
-
+                        stopWatch.Stop();                  
                         keepConnection = response.KeepAlive;
                     } while (keepConnection);
                 }
             }
-            catch (Exception e)
-            {
-                Error(connectionId, e);
-            }
             finally
             {
-                try
-                {
-                    tcpClient.Close();
-                    Log(connectionId, "connection close");
-                }
-                catch (Exception e)
-                {
-                    Error(connectionId, e);
-                }
+				tcpClient.Close();
             }
         }
 
-        private static async Task<string> ReadRequest(NetworkStream stream)
+		private static async Task<string> ReadRequest(NetworkStream networkStream)
         {
-            var buf = new byte[Constants.BUFFER_SIZE];
-            var builder = new StringBuilder(Constants.DEFAULT_BUILDER_SIZE);
+            var chunkOfData = new byte[Constants.BUFFER_SIZE];
+            var readedData = new StringBuilder(Constants.DEFAULT_BUILDER_SIZE);
 
             using (var cancellationTokenSource = new CancellationTokenSource(Constants.RECEIVE_TIMEOUT_MS))
             {
-                using (cancellationTokenSource.Token.Register(stream.Close))
+				using (cancellationTokenSource.Token.Register(networkStream.Close))
                 {
-                    do
+					while (networkStream.DataAvailable)
                     {
-                        var readpos = 0;
+                        int readpos = 0;
 
-                        do
+						while (readpos < Constants.BUFFER_SIZE && networkStream.DataAvailable)
                         {
-                            readpos += await stream.ReadAsync(buf, readpos, Constants.BUFFER_SIZE - readpos, cancellationTokenSource.Token);
-                        } while (readpos < Constants.BUFFER_SIZE && stream.DataAvailable);
+							readpos += await networkStream.ReadAsync(chunkOfData, readpos, Constants.BUFFER_SIZE - readpos, cancellationTokenSource.Token);
+                        }
 
-                        builder.Append(Encoding.UTF8.GetString(buf, 0, readpos));
-                    } while (stream.DataAvailable);
+						readedData.Append(Encoding.UTF8.GetString(chunkOfData, 0, readpos));
+					}
                 }
             }
 
-            return builder.ToString();
+			return readedData.ToString();
         }
 
-        private static async Task SendResponse(NetworkStream stream, string head, string contentFilename, long contentLength)
+        private static async Task SendResponse(NetworkStream networkStream, string header, string contentFilePath, long contentLength)
         {
-            var timeout = Constants.SEND_TIMEOUT_MS_PER_KB;
+            int timeout = Constants.SEND_TIMEOUT_MS_PER_KB;
 
-            if (contentFilename != null && contentLength > 0)
+			if (contentFilePath != null && contentLength > 0)
             {
                 timeout *= ((int)Math.Min(contentLength, int.MaxValue) / 1024) + 1;
             }
@@ -173,43 +152,20 @@ namespace server
             {
                 // как только закроется сетевой поток
                 // отменим передачу данных в него
-                using (cancellationTokenSource.Token.Register(stream.Close))
+				using (cancellationTokenSource.Token.Register(networkStream.Close))
                 {
-                    var bytes = Encoding.UTF8.GetBytes(head);
-                    await stream.WriteAsync(bytes, 0, bytes.Length, cancellationTokenSource.Token);
+					byte[] headerBytes = Encoding.UTF8.GetBytes(header);
+					await networkStream.WriteAsync(headerBytes, 0, headerBytes.Length, cancellationTokenSource.Token);
 
-                    if (contentFilename != null)
+					if (contentFilePath != null)
                     {
-                        using (var fileStream = new FileStream(contentFilename, FileMode.Open, FileAccess.Read))
+						using (var fileStream = new FileStream(contentFilePath, FileMode.Open, FileAccess.Read))
                         {
-                            await fileStream.CopyToAsync(stream, 81920, cancellationTokenSource.Token);
+							await fileStream.CopyToAsync(networkStream, 81920, cancellationTokenSource.Token);
                         }
                     }
                 }
             }
-        }
-
-        #region Logging
-        private static void Log(string id, string text)
-        {
-            // Console.WriteLine($"[{id}]: {text}.");
-        }
-
-        private static void Error(string id, Exception e)
-        {
-            Console.WriteLine($"[{id}]: Exception occured {e.GetType().FullName}\n{e.Message}\n{e.StackTrace}.");
-        }
-
-        private static void LogRequest(string id, string content)
-        {
-            // Console.WriteLine($"[{id}]: Request:\n{content}");
-        }
-
-        private static void LogResponse(string id, string response)
-        {
-            // Console.WriteLine($"[{id}]: Response headers:\n{response}");
-        }
-        #endregion
-
+        }      
     }
 }

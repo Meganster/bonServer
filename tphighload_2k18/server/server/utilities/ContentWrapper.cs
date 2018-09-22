@@ -27,21 +27,21 @@ namespace server
             this.settings = settings;
         }
 
-        public void Invoke(HttpRequest request, HttpResponse response)
+		public void Set(HttpRequest request, HttpResponse response)
         {
             if (!response.Success)
             {
                 return;
             }
 
-            var path = request.Url;
+            string path = request.Url;
             if (string.IsNullOrWhiteSpace(path))
             {
                 response.HttpStatusCode = HttpStatusCode.BadRequest;
                 return;
             }
 
-            var need403 = false;
+			bool need403 = false;
             if (path == "/")
             {
                 path = this.settings.DefaultDirectioryFile;

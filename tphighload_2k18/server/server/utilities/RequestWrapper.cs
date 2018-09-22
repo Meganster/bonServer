@@ -3,7 +3,7 @@ using System.Text;
 
 namespace server
 {
-    public class RequestParser
+	public class RequestWrapper
     {
         private const char Space = ' ';
         private const char Cr = '\r';
@@ -18,7 +18,7 @@ namespace server
         private const char A = 'A';
         private const char F = 'F';
 
-        public void Invoke(HttpRequest request, HttpResponse response)
+		public void Set(HttpRequest request, HttpResponse response)
         {
             if (!response.Success)
             {

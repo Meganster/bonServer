@@ -20,10 +20,7 @@ namespace server
             Settings settings = LoadSettings(settingsFilePath);
             if (settings != null)
             {
-                Console.WriteLine("Here server start");
-				new Server(settings)
-                    .Run()
-                    .Wait();
+				new Server(settings).Run().Wait();
             }
         }
 
@@ -32,10 +29,10 @@ namespace server
             if (args.Length == 0)
             {
                 Console.WriteLine("Bad parameters. Cannot find config file.\nStart with default httpd.conf");
-                return "httpd.conf";
+				return "/etc/httpd.conf";
             }
 
-            return args[0];
+			return args[0];
         }
 
         private static Settings LoadSettings(string settingsFilePath)
