@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -19,7 +18,7 @@ namespace server
 
         public Settings Settings { get => _settings; set => _settings = value; }
 		public RequestWrapper RequestWrapper { get => _requestWrapper; set => _requestWrapper = value; }
-        public ContentWrapper ContentSearch { get => _contentWrapper; set => _contentWrapper = value; }
+		public ContentWrapper ContentWrapper { get => _contentWrapper; set => _contentWrapper = value; }
 		public HeadersWrapper HeadersWrapper { get => _headersWrapper; set => _headersWrapper = value; }
         public ConnectionManager DefaultConnectionManager { get => _connectionManager; set => _connectionManager = value; }
 		public ResponseWrapper ResponseWrapper { get => _responseWrapper; set => _responseWrapper = value; }
@@ -28,7 +27,7 @@ namespace server
         {
             this.Settings = settings;
 			this.RequestWrapper = new RequestWrapper();
-            this.ContentSearch = new ContentWrapper(settings);
+			this.ContentWrapper = new ContentWrapper(settings);
 			this.HeadersWrapper = new HeadersWrapper();
 			this.DefaultConnectionManager = new ConnectionManager();
 			this.ResponseWrapper = new ResponseWrapper();
@@ -44,6 +43,8 @@ namespace server
 
             if (Settings.ThreadLimit > 0)
             {
+				// магия
+                // установка макс количества подключений к пулу потоков
                 Console.WriteLine($"ThreadPool.SetMaxThreads({Settings.ThreadLimit}, {Settings.ThreadLimit})");
                 ThreadPool.SetMaxThreads(Settings.ThreadLimit, Settings.ThreadLimit);
             }
@@ -79,30 +80,29 @@ namespace server
 
                     do
                     {
-                        Stopwatch stopWatch = new Stopwatch();
-                        stopWatch.Start();
-
-						var rawContent = await ReadRequest(networkStream);                  
-                        var request = new HttpRequest(rawContent);
-                        var response = new HttpResponse();
+                    	string rawContent = await ReadRequest(networkStream);
+						Console.WriteLine("rawContent = {0}", rawContent);
+						HttpRequest request = new HttpRequest(rawContent);
+						HttpResponse response = new HttpResponse();
 
                         try
                         {
 							RequestWrapper.Set(request, response);
-							ContentSearch.Set(request, response);
-							HeadersWrapper.Set(request, response);
-                            DefaultConnectionManager.Set(request, response);
-							ResponseWrapper.Set(request, response);
+							ContentWrapper.Set(request, response);
+							HeadersWrapper.Set(response);
+                            DefaultConnectionManager.Set(response);
+							ResponseWrapper.Set(response);
                         }
                         catch (Exception)
                         {
-                            throw;
+							throw new Exception();
                         }
                   
                         // асинхронно отправим ответ
-						await SendResponse(networkStream, response.RawHeadersResponse, response.ResponseContentFilePath, response.ContentLength);
-
-                        stopWatch.Stop();                  
+						await SendResponse(networkStream, 
+						                   response.RawHeadersResponse, 
+						                   response.ResponseContentFilePath, 
+						                   response.ContentLength);                
                         keepConnection = response.KeepAlive;
                     } while (keepConnection);
                 }
@@ -155,13 +155,15 @@ namespace server
 				using (cancellationTokenSource.Token.Register(networkStream.Close))
                 {
 					byte[] headerBytes = Encoding.UTF8.GetBytes(header);
-					await networkStream.WriteAsync(headerBytes, 0, headerBytes.Length, cancellationTokenSource.Token);
-
+					await networkStream.WriteAsync(headerBytes, 0, headerBytes.Length, 
+					                               cancellationTokenSource.Token);
+                    
 					if (contentFilePath != null)
                     {
 						using (var fileStream = new FileStream(contentFilePath, FileMode.Open, FileAccess.Read))
                         {
-							await fileStream.CopyToAsync(networkStream, 81920, cancellationTokenSource.Token);
+							await fileStream.CopyToAsync(networkStream, Constants.DEFAULT_FILE_COPY_BUFFER, 
+							                             cancellationTokenSource.Token);
                         }
                     }
                 }

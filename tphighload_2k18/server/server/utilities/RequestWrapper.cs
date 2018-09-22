@@ -37,12 +37,13 @@ namespace server
                     break;
                 }
             }
-
-            var lineCount = 0;
+            
+            int lineCount = 0;
             using (var stream = new StringReader(request.RawRequest))
             {
-                var firstLine = stream.ReadLine();
+                string firstLine = stream.ReadLine();
 
+				// мусор в firstLine
                 if (string.IsNullOrWhiteSpace(firstLine))
                 {
                     response.Success = false;
@@ -84,9 +85,9 @@ namespace server
 
         private static bool ParseRequestLine(string line, HttpRequest request, HttpResponse response)
         {
-            var position = 0;
+            int position = 0;
 
-            // Пропустим возможные в начале пустые символы
+            // пропустим пустые символы
             for (; position < line.Length && line[position] == Space; position++)
             { }
 
@@ -109,21 +110,24 @@ namespace server
 
         private static bool ParseMethod(string line, HttpRequest request, HttpResponse response, ref int position)
         {
-            var startPosition = position;
-            var getSimilar = true;
-            var headSimilar = true;
-            var getCaption = HttpMethod.Get.GetCaption();
-            var headCaption = HttpMethod.Head.GetCaption();
+            int startPosition = position;
+            bool getSimilar = true;
+			bool headSimilar = true;
+			string getCaption = HttpMethod.Get.ToString();
+			string headCaption = HttpMethod.Head.ToString();
 
             for (; position < line.Length && line[position] != Space && line[position] != Cr; position++)
             {
                 if (getSimilar
-                    && ((position - startPosition) >= getCaption.Length || line[position] != getCaption[position - startPosition]))
+                    && ((position - startPosition) >= getCaption.Length 
+				        || line[position] != getCaption[position - startPosition]))
                 {
                     getSimilar = false;
                 }
+
                 if (headSimilar
-                    && ((position - startPosition) >= headCaption.Length || line[position] != headCaption[position - startPosition]))
+                    && ((position - startPosition) >= headCaption.Length 
+				        || line[position] != headCaption[position - startPosition]))
                 {
                     headSimilar = false;
                 }

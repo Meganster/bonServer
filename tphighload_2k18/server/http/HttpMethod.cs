@@ -11,7 +11,7 @@ namespace server
 
     public static class HttpMethodExtensions
     {
-        public static string GetCaption(this HttpMethod method)
+        public static string ToString(this HttpMethod method)
         {
             switch (method)
             {
