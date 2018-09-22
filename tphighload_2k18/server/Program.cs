@@ -21,10 +21,9 @@ namespace server
             if (settings != null)
             {
                 Console.WriteLine("Here server start");
-                //// запуск сервера с настройками
-                //new HttpServer(settings)
-                //    .RunServer()
-                //    .Wait();
+				new Server(settings)
+                    .Run()
+                    .Wait();
             }
         }
 

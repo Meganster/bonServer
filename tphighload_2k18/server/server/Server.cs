@@ -30,8 +30,8 @@ namespace server
             this.Settings = settings;
             this.ContentSearch = new ContentWrapper(settings);
         }
-
-        public async Task RunServer()
+        
+        public async Task Run()
         {
             #region OnStart log
             Console.WriteLine("Server started.");
