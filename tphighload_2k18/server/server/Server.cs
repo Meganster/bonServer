@@ -56,7 +56,9 @@ namespace server
 
                 while (true)
                 {
-                    var tcpClient = await tcpListener.AcceptTcpClientAsync();
+					// магия
+                    // установка макс количества подключений к пулу потоков
+					TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
                     ProcessingAsync(tcpClient);
                 }
             }
@@ -79,12 +81,9 @@ namespace server
 
                     do
                     {
-                        Stopwatch stopWatch = new Stopwatch();
-                        stopWatch.Start();
-
-						var rawContent = await ReadRequest(networkStream);                  
-                        var request = new HttpRequest(rawContent);
-                        var response = new HttpResponse();
+						string rawContent = await ReadRequest(networkStream);                  
+						HttpRequest request = new HttpRequest(rawContent);
+						HttpResponse response = new HttpResponse();
 
                         try
                         {
@@ -101,8 +100,7 @@ namespace server
                   
                         // асинхронно отправим ответ
 						await SendResponse(networkStream, response.RawHeadersResponse, response.ResponseContentFilePath, response.ContentLength);
-
-                        stopWatch.Stop();                  
+                                        
                         keepConnection = response.KeepAlive;
                     } while (keepConnection);
                 }
@@ -115,8 +113,8 @@ namespace server
 
 		private static async Task<string> ReadRequest(NetworkStream networkStream)
         {
-            var chunkOfData = new byte[Constants.BUFFER_SIZE];
-            var readedData = new StringBuilder(Constants.DEFAULT_BUILDER_SIZE);
+            byte[] chunkOfData = new byte[Constants.BUFFER_SIZE];
+			StringBuilder readedData = new StringBuilder(Constants.DEFAULT_BUILDER_SIZE);
 
             using (var cancellationTokenSource = new CancellationTokenSource(Constants.RECEIVE_TIMEOUT_MS))
             {

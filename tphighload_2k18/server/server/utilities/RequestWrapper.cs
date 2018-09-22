@@ -37,11 +37,11 @@ namespace server
                     break;
                 }
             }
-
-            var lineCount = 0;
+            
+            int lineCount = 0;
             using (var stream = new StringReader(request.RawRequest))
             {
-                var firstLine = stream.ReadLine();
+				string firstLine = stream.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(firstLine))
                 {
@@ -63,7 +63,7 @@ namespace server
 
                 while ((line = stream.ReadLine()) != null && !string.IsNullOrWhiteSpace(line))
                 {
-                    var colonIndex = line.IndexOf(Colon);
+                    int colonIndex = line.IndexOf(Colon);
 
                     if (colonIndex < 1 || line.Length == colonIndex - 1)
                     {
@@ -109,21 +109,23 @@ namespace server
 
         private static bool ParseMethod(string line, HttpRequest request, HttpResponse response, ref int position)
         {
-            var startPosition = position;
-            var getSimilar = true;
-            var headSimilar = true;
-            var getCaption = HttpMethod.Get.GetCaption();
-            var headCaption = HttpMethod.Head.GetCaption();
+            int startPosition = position;
+			bool getSimilar = true;
+            bool headSimilar = true;
+            string getCaption = HttpMethod.Get.GetCaption();
+            string headCaption = HttpMethod.Head.GetCaption();
 
             for (; position < line.Length && line[position] != Space && line[position] != Cr; position++)
             {
                 if (getSimilar
-                    && ((position - startPosition) >= getCaption.Length || line[position] != getCaption[position - startPosition]))
+                    && ((position - startPosition) >= getCaption.Length 
+				        || line[position] != getCaption[position - startPosition]))
                 {
                     getSimilar = false;
                 }
                 if (headSimilar
-                    && ((position - startPosition) >= headCaption.Length || line[position] != headCaption[position - startPosition]))
+                    && ((position - startPosition) >= headCaption.Length 
+				        || line[position] != headCaption[position - startPosition]))
                 {
                     headSimilar = false;
                 }
@@ -148,8 +150,9 @@ namespace server
 
         private static bool ParseUrl( string line, HttpRequest request, HttpResponse response, ref int position)
         {
-            var startPosition = position;
-            var pathEncoded = false;
+            int startPosition = position;
+            bool pathEncoded = false;
+
             for (; position < line.Length && line[position] != Space && line[position] != Cr; position++)
             {
                 var ch = line[position];
@@ -189,7 +192,9 @@ namespace server
                 return false;
             }
 
-            request.Url = pathEncoded ? new Decoder(position - startPosition).Decode(line, startPosition, position) : line.Substring(startPosition, position - startPosition);
+            request.Url = pathEncoded 
+				? new Decoder(position - startPosition).Decode(line, startPosition, position) 
+				: line.Substring(startPosition, position - startPosition);
 
             // т.к. get параметры не нужны, то просто их проигнорируем
             for (; position < line.Length && line[position] != Space; position++)
@@ -201,11 +206,11 @@ namespace server
 
         private static bool ParseVersion( string line, HttpRequest request, HttpResponse response, ref int position)
         {
-            var startPosition = position;
-            var http10Similar = true;
-            var http11Similar = true;
-            var http10Caption = HttpVersion.Http10.GetCaption();
-            var http11Caption = HttpVersion.Http11.GetCaption();
+            int startPosition = position;
+            bool http10Similar = true;
+			bool http11Similar = true;
+            string http10Caption = HttpVersion.Http10.GetCaption();
+			string http11Caption = HttpVersion.Http11.GetCaption();
 
             for (; position < line.Length && line[position] != Space && line[position] != Cr; position++)
             {
@@ -214,6 +219,7 @@ namespace server
                 {
                     http10Similar = false;
                 }
+
                 if (http11Similar && ((position - startPosition) >= http11Caption.Length
                         || line[position] != http11Caption[position - startPosition]))
                 {
@@ -233,6 +239,7 @@ namespace server
                 request.HttpVersion = HttpVersion.Http10;
                 return true;
             }
+
             if (http11Similar && position - startPosition == http11Caption.Length)
             {
                 request.HttpVersion = HttpVersion.Http11;
