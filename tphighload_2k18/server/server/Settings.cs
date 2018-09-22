@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace server
 {
@@ -61,10 +60,8 @@ namespace server
         }
 
         public Settings(
-            string directoryRoot,
-            string defaultUrl,
-            short port,
-            short threadLimit)
+            string directoryRoot, string defaultUrl,
+            short port, short threadLimit)
         {
             Root = String.IsNullOrEmpty(directoryRoot) ? directoryRoot : throw new ArgumentNullException();
             DefaultDirectioryFile = String.IsNullOrEmpty(defaultUrl) ? defaultUrl : throw new ArgumentNullException();
