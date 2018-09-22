@@ -122,20 +122,20 @@ namespace server
             {
 				using (cancellationTokenSource.Token.Register(networkStream.Close))
                 {
-					while (networkStream.DataAvailable)
-                    {
-                        int readpos = 0;
+					do
+					{
+						int readpos = 0;
 
-						while (readpos < Constants.BUFFER_SIZE && networkStream.DataAvailable)
-                        {
+						do
+						{
 							readpos += await networkStream.ReadAsync(chunkOfData, readpos, Constants.BUFFER_SIZE - readpos, cancellationTokenSource.Token);
-                        }
+						} while (readpos < Constants.BUFFER_SIZE && networkStream.DataAvailable);
 
 						readedData.Append(Encoding.UTF8.GetString(chunkOfData, 0, readpos));
-					}
+					} while (networkStream.DataAvailable);
                 }
             }
-
+            
 			return readedData.ToString();
         }
 
