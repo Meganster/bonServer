@@ -57,8 +57,9 @@ namespace server
                 path = path.Substring(1);
             }
 
-            var absolutePath = Path.Combine(this.settings.Root, path);
+            string absolutePath = Path.Combine(this.settings.Root, path);
             FileInfo fileInfo;
+
             try
             {
                 fileInfo = new FileInfo(absolutePath);

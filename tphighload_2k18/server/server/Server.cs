@@ -89,9 +89,9 @@ namespace server
                         {
 							RequestWrapper.Set(request, response);
 							ContentWrapper.Set(request, response);
-							HeadersWrapper.Set(request, response);
-                            DefaultConnectionManager.Set(request, response);
-							ResponseWrapper.Set(request, response);
+							HeadersWrapper.Set(response);
+                            DefaultConnectionManager.Set(response);
+							ResponseWrapper.Set(response);
                         }
                         catch (Exception)
                         {

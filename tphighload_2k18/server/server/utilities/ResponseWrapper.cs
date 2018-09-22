@@ -4,7 +4,7 @@ namespace server
 {
     public class ResponseWrapper
     {
-        public void Set(HttpRequest request, HttpResponse response)
+        public void Set(HttpResponse response)
         {
             string newLine = response.UseCrLf ? "\r\n" : "\n";
 			StringBuilder headers = new StringBuilder();
