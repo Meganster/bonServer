@@ -1,0 +1,4 @@
+tphighload_2k18/server/bin/*
+tphighload_2k18/server/obj/*
+*/.vs/*
+*/.idea/*
