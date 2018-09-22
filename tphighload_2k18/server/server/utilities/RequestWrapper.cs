@@ -86,7 +86,7 @@ namespace server
         {
             var position = 0;
 
-            // Пропустим возможные в начале пустые символы
+            // пропускаем пустые символы
             for (; position < line.Length && line[position] == Space; position++)
             { }
 
@@ -123,6 +123,7 @@ namespace server
                 {
                     getSimilar = false;
                 }
+
                 if (headSimilar
                     && ((position - startPosition) >= headCaption.Length 
 				        || line[position] != headCaption[position - startPosition]))
@@ -186,7 +187,7 @@ namespace server
 
             if (position == startPosition)
             {
-                // Пустой URL
+                // пустой URL
                 response.Success = false;
                 response.HttpStatusCode = HttpStatusCode.BadRequest;
                 return false;

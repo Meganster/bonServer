@@ -114,8 +114,8 @@ namespace server
 
 		private static async Task<string> ReadRequest(NetworkStream networkStream)
         {
-            byte[] chunkOfData = new byte[Constants.BUFFER_SIZE];
-			StringBuilder readedData = new StringBuilder(Constants.DEFAULT_BUILDER_SIZE);
+			byte[] chunkOfData = new byte[Constants.READ_CHUNK_SIZE];
+			StringBuilder readedData = new StringBuilder(Constants.READ_BUFFER_SIZE);
 
             using (var cancellationTokenSource = new CancellationTokenSource(Constants.RECEIVE_TIMEOUT_MS))
             {
@@ -127,8 +127,9 @@ namespace server
 
 						do
 						{
-							readpos += await networkStream.ReadAsync(chunkOfData, readpos, Constants.BUFFER_SIZE - readpos, cancellationTokenSource.Token);
-						} while (readpos < Constants.BUFFER_SIZE && networkStream.DataAvailable);
+							readpos += await networkStream.ReadAsync(chunkOfData, readpos, Constants.READ_CHUNK_SIZE - readpos, 
+							                                         cancellationTokenSource.Token);
+						} while (readpos < Constants.READ_CHUNK_SIZE && networkStream.DataAvailable);
 
 						readedData.Append(Encoding.UTF8.GetString(chunkOfData, 0, readpos));
 					} while (networkStream.DataAvailable);
