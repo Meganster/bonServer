@@ -41,14 +41,14 @@ namespace server
                 return;
             }
 
-			bool need403 = false;
+			bool isForbiden = false;
             if (path == "/")
             {
                 path = this.settings.DefaultDirectioryFile;
             }
             else if (path[path.Length - 1] == '/')
             {
-                need403 = true;
+				isForbiden = true;
                 path = path + this.settings.DefaultDirectioryFile;
             }
 
@@ -71,7 +71,7 @@ namespace server
 
             if (fileInfo == null || !fileInfo.Exists || !fileInfo.FullName.StartsWith(this.settings.Root))
             {
-                response.HttpStatusCode = need403 ? HttpStatusCode.Forbidden : HttpStatusCode.NotFound;
+				response.HttpStatusCode = isForbiden ? HttpStatusCode.Forbidden : HttpStatusCode.NotFound;
                 return;
             }
 

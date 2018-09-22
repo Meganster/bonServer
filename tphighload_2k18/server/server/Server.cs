@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -95,12 +94,14 @@ namespace server
                         }
                         catch (Exception)
                         {
-                            throw;
+                            throw new Exception();
                         }
                   
                         // асинхронно отправим ответ
-						await SendResponse(networkStream, response.RawHeadersResponse, response.ResponseContentFilePath, response.ContentLength);
-                                        
+						await SendResponse(networkStream, 
+						                   response.RawHeadersResponse, 
+						                   response.ResponseContentFilePath, 
+						                   response.ContentLength);             
                         keepConnection = response.KeepAlive;
                     } while (keepConnection);
                 }
