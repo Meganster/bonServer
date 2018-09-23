@@ -263,33 +263,39 @@ namespace server
         #region decoder
         private class Decoder
         {
-            private int bufferSize;
-            private int numChars;
-            private char[] charBuffer;
-            private int numBytes;
-            private byte[] byteBuffer;
-            private Encoding encoding = Encoding.UTF8;
+            private int _bufferSize;
+            private int _numChars;
+            private char[] _charBuffer;
+            private int _numBytes;
+            private byte[] _byteBuffer;
+
+            public int BufferSize { get => _bufferSize; set => _bufferSize = value; }
+            public int NumChars { get => _numChars; set => _numChars = value; }
+            public char[] CharBuffer { get => _charBuffer; set => _charBuffer = value; }
+            public int NumBytes { get => _numBytes; set => _numBytes = value; }
+            public byte[] ByteBuffer { get => _byteBuffer; set => _byteBuffer = value; }
+
 
             private void FlushBytes()
             {
-                if (this.numBytes > 0)
+                if (NumBytes > 0)
                 {
-                    this.numChars += this.encoding.GetChars(
-                        this.byteBuffer,
+                    NumChars += Encoding.UTF8.GetChars(
+                        ByteBuffer,
                         0,
-                        this.numBytes,
-                        this.charBuffer,
-                        this.numChars
+                        NumBytes,
+                        CharBuffer,
+                        NumChars
                         );
 
-                    this.numBytes = 0;
+                    NumBytes = 0;
                 }
             }
 
             public Decoder(int bufferSize)
             {
-                this.bufferSize = bufferSize;
-                this.charBuffer = new char[bufferSize];
+                BufferSize = bufferSize;
+                CharBuffer = new char[bufferSize];
             }
 
             public string Decode(string value, int from, int to)
@@ -299,10 +305,10 @@ namespace server
                     return null;
                 }
 
-                var count = value.Length;
-                for (var pos = from; pos < to; pos++)
+                int count = value.Length;
+                for (int pos = from; pos < to; pos++)
                 {
-                    var ch = value[pos];
+                    char ch = value[pos];
 
                     if (ch == Plus)
                     {
@@ -310,61 +316,61 @@ namespace server
                     }
                     else if (ch == Percentage && pos < count - 2)
                     {
-                        var h1 = HexToInt(value[pos + 1]);
-                        var h2 = HexToInt(value[pos + 2]);
+                        int h1 = HexToInt(value[pos + 1]);
+                        int h2 = HexToInt(value[pos + 2]);
 
                         if (h1 >= 0 && h2 >= 0)
                         {
                             var b = (byte)((h1 << 4) | h2);
                             pos += 2;
 
-                            this.AddByte(b);
+                            AddByte(b);
                             continue;
                         }
                     }
 
                     if ((ch & 0xFF80) == 0)
                     {
-                        this.AddByte((byte)ch);
+                        AddByte((byte)ch);
                     }
                     else
                     {
-                        this.AddChar(ch);
+                        AddChar(ch);
                     }
                 }
 
-                return this.GetString();
+                return GetString();
             }
 
             private void AddChar(char ch)
             {
-                if (this.numBytes > 0)
+                if (NumBytes > 0)
                 {
                     this.FlushBytes();
                 }
 
-                this.charBuffer[this.numChars++] = ch;
+                CharBuffer[NumChars++] = ch;
             }
 
             private void AddByte(byte b)
             {
-                if (this.byteBuffer == null)
+                if (ByteBuffer == null)
                 {
-                    this.byteBuffer = new byte[this.bufferSize];
+                    ByteBuffer = new byte[BufferSize];
                 }
 
-                this.byteBuffer[this.numBytes++] = b;
+                ByteBuffer[NumBytes++] = b;
             }
 
             private string GetString()
             {
-                if (this.numBytes == 0)
+                if (NumBytes == 0)
                 {
                     return string.Empty;
                 }
 
-                this.FlushBytes();
-                return new string(this.charBuffer, 0, this.numChars);
+                FlushBytes();
+                return new string(CharBuffer, 0, NumChars);
             }
 
             private static int HexToInt(char h)
