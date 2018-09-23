@@ -1,0 +1,135 @@
+-----------------------TRY 1-----------------------
+
+This is ApacheBench, Version 2.3 <$Revision: 1706008 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        server
+Server Hostname:        localhost
+Server Port:            80
+
+Document Path:          /httptest/wikipedia_russia.html
+Document Length:        954824 bytes
+
+Concurrency Level:      100
+Time taken for tests:   0.968 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      954964000 bytes
+HTML transferred:       954824000 bytes
+Requests per second:    1033.50 [#/sec] (mean)
+Time per request:       96.759 [ms] (mean)
+Time per request:       0.968 [ms] (mean, across all concurrent requests)
+Transfer rate:          963819.42 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    1   3.5      0      17
+Processing:    10   91  28.0     91     192
+Waiting:        1   33  17.4     30      88
+Total:         23   93  27.9     92     192
+
+Percentage of the requests served within a certain time (ms)
+  50%     92
+  66%    100
+  75%    106
+  80%    109
+  90%    129
+  95%    149
+  98%    162
+  99%    176
+ 100%    192 (longest request)
+
+-----------------------TRY 2-----------------------
+
+This is ApacheBench, Version 2.3 <$Revision: 1706008 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        server
+Server Hostname:        localhost
+Server Port:            80
+
+Document Path:          /httptest/wikipedia_russia.html
+Document Length:        954824 bytes
+
+Concurrency Level:      100
+Time taken for tests:   1.000 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      954964000 bytes
+HTML transferred:       954824000 bytes
+Requests per second:    999.59 [#/sec] (mean)
+Time per request:       100.041 [ms] (mean)
+Time per request:       1.000 [ms] (mean, across all concurrent requests)
+Transfer rate:          932198.90 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.9      0       6
+Processing:    11   98  26.3     94     182
+Waiting:        4   42  23.2     37     119
+Total:         11   98  26.3     94     183
+
+Percentage of the requests served within a certain time (ms)
+  50%     94
+  66%    104
+  75%    112
+  80%    119
+  90%    138
+  95%    144
+  98%    158
+  99%    174
+ 100%    183 (longest request)
+
+-----------------------TRY 3-----------------------
+
+This is ApacheBench, Version 2.3 <$Revision: 1706008 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        server
+Server Hostname:        localhost
+Server Port:            80
+
+Document Path:          /httptest/wikipedia_russia.html
+Document Length:        954824 bytes
+
+Concurrency Level:      100
+Time taken for tests:   0.965 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      954964000 bytes
+HTML transferred:       954824000 bytes
+Requests per second:    1035.98 [#/sec] (mean)
+Time per request:       96.527 [ms] (mean)
+Time per request:       0.965 [ms] (mean, across all concurrent requests)
+Transfer rate:          966132.93 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    1   1.3      0       9
+Processing:    30   92  28.4     93     185
+Waiting:        1   37  23.7     30     118
+Total:         30   93  28.1     93     185
+
+Percentage of the requests served within a certain time (ms)
+  50%     93
+  66%    102
+  75%    110
+  80%    113
+  90%    130
+  95%    145
+  98%    156
+  99%    170
+ 100%    185 (longest request)
+
