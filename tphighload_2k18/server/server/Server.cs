@@ -111,7 +111,7 @@ namespace server
 
             using (var cancellationTokenSource = new CancellationTokenSource(Constants.RECEIVE_TIMEOUT_MS))
             {
-				// как только закроется сетевой поток
+				// как только закроется сетевой поток на чтение
 				// отменим передачу данных в него через RECEIVE_TIMEOUT_MS
 				using (cancellationTokenSource.Token.Register(networkStream.Close))
                 {
@@ -144,7 +144,7 @@ namespace server
 
             using (var cancellationTokenSource = new CancellationTokenSource(timeout))
             {
-                // как только закроется сетевой поток
+                // как только закроется сетевой поток на запись
 				// отменим передачу данных в него через timeout ms
 				using (cancellationTokenSource.Token.Register(networkStream.Close))
                 {

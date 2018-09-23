@@ -6,7 +6,7 @@ namespace server
 {
     public class Settings
     {
-        private string _root = "/var/www";
+        private string _root = "/var/www/html";
         private string _defaultDirectioryFile = "index.html";
         private short _port = 80;
         private short _threadLimit = 0;
