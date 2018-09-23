@@ -37,7 +37,7 @@ namespace server
             string path = request.Url;
             if (string.IsNullOrWhiteSpace(path))
             {
-                response.HttpStatusCode = HttpStatusCode.BadRequest;
+				response.HttpStatusCode = HttpStatusCode.NotAllowed;
                 return;
             }
 

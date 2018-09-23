@@ -8,7 +8,6 @@ namespace server
         Forbidden,  // status 403
         NotFound,   // status 404
         NotAllowed, // status 405
-        BadRequest, // status 400
     }
 
     public static class HttpStatusCodeExtensions
@@ -25,8 +24,6 @@ namespace server
                     return "404 Not Found";
                 case HttpStatusCode.NotAllowed:
                     return "405 Method Not Allowed";
-                case HttpStatusCode.BadRequest:
-                    return "400 Bad Request";
                 default:
                     throw new ArgumentOutOfRangeException();
             }

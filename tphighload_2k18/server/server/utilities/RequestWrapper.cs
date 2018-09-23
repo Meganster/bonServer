@@ -46,7 +46,7 @@ namespace server
                 if (string.IsNullOrWhiteSpace(firstLine))
                 {
                     response.Success = false;
-                    response.HttpStatusCode = HttpStatusCode.BadRequest;
+					response.HttpStatusCode = HttpStatusCode.NotAllowed;
                     return;
                 }
 
@@ -67,7 +67,7 @@ namespace server
 
                     if (colonIndex < 1 || line.Length == colonIndex - 1)
                     {
-                        response.HttpStatusCode = HttpStatusCode.BadRequest;
+						response.HttpStatusCode = HttpStatusCode.NotAllowed;
                         return;
                     }
 
@@ -75,10 +75,11 @@ namespace server
                 }
             }
 
+            // пустой запрос
             if (lineCount == 0)
             {
                 response.Success = false;
-                response.HttpStatusCode = HttpStatusCode.BadRequest;
+				response.HttpStatusCode = HttpStatusCode.NotAllowed;
             }
         }
 
@@ -110,35 +111,35 @@ namespace server
         private static bool ParseMethod(string line, HttpRequest request, HttpResponse response, ref int position)
         {
             int startPosition = position;
-			bool getSimilar = true;
-            bool headSimilar = true;
+			bool isGetMethod = true;
+            bool isHeadMethod = true;
             string getCaption = HttpMethod.Get.GetCaption();
             string headCaption = HttpMethod.Head.GetCaption();
 
             for (; position < line.Length && line[position] != Space && line[position] != Cr; position++)
             {
-                if (getSimilar
+                if (isGetMethod
                     && ((position - startPosition) >= getCaption.Length 
 				        || line[position] != getCaption[position - startPosition]))
                 {
-                    getSimilar = false;
+                    isGetMethod = false;
                 }
 
-                if (headSimilar
+                if (isHeadMethod
                     && ((position - startPosition) >= headCaption.Length 
 				        || line[position] != headCaption[position - startPosition]))
                 {
-                    headSimilar = false;
+                    isHeadMethod = false;
                 }
             }
 
-            if (getSimilar && position - startPosition == getCaption.Length)
+            if (isGetMethod && position - startPosition == getCaption.Length)
             {
                 request.HttpMethod = HttpMethod.Get;
                 return true;
             }
 
-            if (headSimilar && position - startPosition == headCaption.Length)
+            if (isHeadMethod && position - startPosition == headCaption.Length)
             {
                 request.HttpMethod = HttpMethod.Head;
                 return true;
@@ -164,7 +165,7 @@ namespace server
                     {
                         // Начинаться с ? некорректно
                         response.Success = false;
-                        response.HttpStatusCode = HttpStatusCode.BadRequest;
+						response.HttpStatusCode = HttpStatusCode.NotAllowed;
                         return false;
                     }
 
@@ -177,7 +178,7 @@ namespace server
                     {
                         // Начинаться с % некорректно
                         response.Success = false;
-                        response.HttpStatusCode = HttpStatusCode.BadRequest;
+						response.HttpStatusCode = HttpStatusCode.NotAllowed;
                         return false;
                     }
 
@@ -189,7 +190,7 @@ namespace server
             {
                 // пустой URL
                 response.Success = false;
-                response.HttpStatusCode = HttpStatusCode.BadRequest;
+				response.HttpStatusCode = HttpStatusCode.NotAllowed;
                 return false;
             }
 
@@ -248,7 +249,7 @@ namespace server
             }
 
             response.Success = false;
-            response.HttpStatusCode = HttpStatusCode.BadRequest;
+			response.HttpStatusCode = HttpStatusCode.NotAllowed;
             return false;
         }
 

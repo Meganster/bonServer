@@ -10,4 +10,7 @@
     <Folder Include="http\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="EmptyStruct.cs" />
+  </ItemGroup>
 </Project>
