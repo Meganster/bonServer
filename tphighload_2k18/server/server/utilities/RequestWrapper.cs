@@ -43,6 +43,7 @@ namespace server
             {
 				string firstLine = stream.ReadLine();
 
+                // проверим есть ли в строке данные
                 if (string.IsNullOrWhiteSpace(firstLine))
                 {
                     response.Success = false;
@@ -50,6 +51,7 @@ namespace server
                     return;
                 }
 
+                // парсим метод, урл, версию протокола http
                 if (!ParseRequestLine(firstLine, request, response))
                 {
                     return;
@@ -65,6 +67,8 @@ namespace server
                 {
                     int colonIndex = line.IndexOf(Colon);
 
+                    // двоеточие отсутствует или не задано само значение
+                    // строка битая, вернем ошибку
                     if (colonIndex < 1 || line.Length == colonIndex - 1)
                     {
 						response.HttpStatusCode = HttpStatusCode.NotAllowed;
@@ -85,7 +89,7 @@ namespace server
 
         private static bool ParseRequestLine(string line, HttpRequest request, HttpResponse response)
         {
-            var position = 0;
+            int position = 0;
 
             // пропускаем пустые символы
             for (; position < line.Length && line[position] == Space; position++)
@@ -172,6 +176,8 @@ namespace server
                     break;
                 }
 
+                // если нашли '%' 
+                // значит url закодирован
                 if (ch == Percentage)
                 {
                     if (position == startPosition)
@@ -194,11 +200,12 @@ namespace server
                 return false;
             }
 
+            // декоидрвоание url
             request.Url = pathEncoded 
 				? new Decoder(position - startPosition).Decode(line, startPosition, position) 
 				: line.Substring(startPosition, position - startPosition);
 
-            // т.к. get параметры не нужны, то просто их проигнорируем
+            // т.к. get параметры не нужны, то игнорируем их
             for (; position < line.Length && line[position] != Space; position++)
             {
             }
@@ -209,23 +216,23 @@ namespace server
         private static bool ParseVersion( string line, HttpRequest request, HttpResponse response, ref int position)
         {
             int startPosition = position;
-            bool http10Similar = true;
-			bool http11Similar = true;
+            bool isHttp10 = true;
+			bool isHttp11 = true;
             string http10Caption = HttpVersion.Http10.GetCaption();
 			string http11Caption = HttpVersion.Http11.GetCaption();
 
             for (; position < line.Length && line[position] != Space && line[position] != Cr; position++)
             {
-                if (http10Similar && ((position - startPosition) >= http10Caption.Length
+                if (isHttp10 && ((position - startPosition) >= http10Caption.Length
                         || line[position] != http10Caption[position - startPosition]))
                 {
-                    http10Similar = false;
+                    isHttp10 = false;
                 }
 
-                if (http11Similar && ((position - startPosition) >= http11Caption.Length
+                if (isHttp11 && ((position - startPosition) >= http11Caption.Length
                         || line[position] != http11Caption[position - startPosition]))
                 {
-                    http11Similar = false;
+                    isHttp11 = false;
                 }
             }
 
@@ -236,13 +243,13 @@ namespace server
                 return true;
             }
 
-            if (http10Similar && position - startPosition == http10Caption.Length)
+            if (isHttp10 && position - startPosition == http10Caption.Length)
             {
                 request.HttpVersion = HttpVersion.Http10;
                 return true;
             }
 
-            if (http11Similar && position - startPosition == http11Caption.Length)
+            if (isHttp11 && position - startPosition == http11Caption.Length)
             {
                 request.HttpVersion = HttpVersion.Http11;
                 return true;
@@ -272,7 +279,8 @@ namespace server
                         0,
                         this.numBytes,
                         this.charBuffer,
-                        this.numChars);
+                        this.numChars
+                        );
 
                     this.numBytes = 0;
                 }

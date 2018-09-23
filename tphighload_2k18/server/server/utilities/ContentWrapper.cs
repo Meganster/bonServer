@@ -6,7 +6,7 @@ namespace server
 {
     public class ContentWrapper
     {
-        private static Dictionary<string, string> PossibleContentTypes =
+        private static Dictionary<string, string> _possibleContentTypes =
             new Dictionary<string, string>
             {
                 [".html"] = "text/html",
@@ -19,12 +19,14 @@ namespace server
                 [".swf"] = "application/x-shockwave-flash",
             };
 
-        private Settings settings;
+        private Settings _settings;
 
+        public Settings Settings { get => _settings; set => _settings = value; }
+        public Dictionary<string, string> PossibleContentTypes { get => _possibleContentTypes; }
 
         public ContentWrapper(Settings settings)
         {
-            this.settings = settings;
+            Settings = settings;
         }
 
 		public void Set(HttpRequest request, HttpResponse response)
@@ -44,12 +46,12 @@ namespace server
 			bool isForbiden = false;
             if (path == "/")
             {
-                path = this.settings.DefaultDirectioryFile;
+                path = Settings.DefaultDirectioryFile;
             }
             else if (path[path.Length - 1] == '/')
             {
 				isForbiden = true;
-                path = path + this.settings.DefaultDirectioryFile;
+                path = path + Settings.DefaultDirectioryFile;
             }
 
             if (path[0] == '/')
@@ -57,7 +59,7 @@ namespace server
                 path = path.Substring(1);
             }
 
-            string absolutePath = Path.Combine(this.settings.Root, path);
+            string absolutePath = Path.Combine(Settings.Root, path);
             FileInfo fileInfo;
 
             try
@@ -69,7 +71,7 @@ namespace server
                 fileInfo = null;
             }
 
-            if (fileInfo == null || !fileInfo.Exists || !fileInfo.FullName.StartsWith(this.settings.Root))
+            if (fileInfo == null || !fileInfo.Exists || !fileInfo.FullName.StartsWith(Settings.Root))
             {
 				response.HttpStatusCode = isForbiden ? HttpStatusCode.Forbidden : HttpStatusCode.NotFound;
                 return;

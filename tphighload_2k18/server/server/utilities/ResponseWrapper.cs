@@ -7,14 +7,15 @@ namespace server
     {
         public void Set(HttpResponse response)
         {
-			// set headers
+			// set server and date headers
 			response.Headers["Server"] = "server";
             response.Headers["Date"] = DateTime.UtcNow.ToString("r");
 
-            // set connection
+            // set connection headers
 			response.KeepAlive = false;
             response.Headers["Connection"] = "close";
 
+            // set RawHeaders
             string newLine = response.UseCrLf ? "\r\n" : "\n";
 			StringBuilder headers = new StringBuilder();
             
