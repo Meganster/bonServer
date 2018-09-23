@@ -39,7 +39,7 @@ namespace server
             {
 				// магия
                 // установка макс количества подключений к пулу потоков
-                Console.WriteLine($"ThreadPool.SetMaxThreads({Settings.ThreadLimit}, {Settings.ThreadLimit})");
+				Console.WriteLine($"Current thread_limit: {Settings.ThreadLimit}");
                 ThreadPool.SetMaxThreads(Settings.ThreadLimit, Settings.ThreadLimit);
             }
 

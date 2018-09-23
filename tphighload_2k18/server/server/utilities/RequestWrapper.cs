@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 
 namespace server
@@ -200,10 +201,10 @@ namespace server
                 return false;
             }
 
-            // декоидрвоание url
+            // декодирование url
             request.Url = pathEncoded 
 				? new Decoder(position - startPosition).Decode(line, startPosition, position) 
-				: line.Substring(startPosition, position - startPosition);
+				: line.Substring(startPosition, position - startPosition);         
 
             // т.к. get параметры не нужны, то игнорируем их
             for (; position < line.Length && line[position] != Space; position++)
@@ -321,7 +322,7 @@ namespace server
 
                         if (h1 >= 0 && h2 >= 0)
                         {
-                            var b = (byte)((h1 << 4) | h2);
+                            byte b = (byte)((h1 << 4) | h2);
                             pos += 2;
 
                             AddByte(b);
@@ -346,7 +347,7 @@ namespace server
             {
                 if (NumBytes > 0)
                 {
-                    this.FlushBytes();
+                    FlushBytes();
                 }
 
                 CharBuffer[NumChars++] = ch;
