@@ -12,5 +12,6 @@
 
   <ItemGroup>
     <Compile Remove="EmptyStruct.cs" />
+    <Compile Remove="server\utilities\HeadersWrapper.cs" />
   </ItemGroup>
 </Project>

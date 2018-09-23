@@ -12,15 +12,11 @@ namespace server
         private Settings _settings;
 		private RequestWrapper _requestWrapper;
         private ContentWrapper _contentWrapper;
-        private HeadersWrapper _headersWrapper;
-        private ConnectionManager _connectionManager;
         private ResponseWrapper _responseWrapper;
 
         public Settings Settings { get => _settings; set => _settings = value; }
 		public RequestWrapper RequestWrapper { get => _requestWrapper; set => _requestWrapper = value; }
 		public ContentWrapper ContentWrapper { get => _contentWrapper; set => _contentWrapper = value; }
-		public HeadersWrapper HeadersWrapper { get => _headersWrapper; set => _headersWrapper = value; }
-        public ConnectionManager DefaultConnectionManager { get => _connectionManager; set => _connectionManager = value; }
 		public ResponseWrapper ResponseWrapper { get => _responseWrapper; set => _responseWrapper = value; }
 
         public Server(Settings settings)
@@ -28,8 +24,6 @@ namespace server
             this.Settings = settings;
 			this.RequestWrapper = new RequestWrapper();
 			this.ContentWrapper = new ContentWrapper(settings);
-			this.HeadersWrapper = new HeadersWrapper();
-			this.DefaultConnectionManager = new ConnectionManager();
 			this.ResponseWrapper = new ResponseWrapper();
         }
         
@@ -88,8 +82,6 @@ namespace server
                         {
 							RequestWrapper.Set(request, response);
 							ContentWrapper.Set(request, response);
-							HeadersWrapper.Set(response);
-                            DefaultConnectionManager.Set(response);
 							ResponseWrapper.Set(response);
                         }
                         catch (Exception)

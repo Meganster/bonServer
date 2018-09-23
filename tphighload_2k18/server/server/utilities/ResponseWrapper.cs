@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace server
 {
@@ -6,6 +7,14 @@ namespace server
     {
         public void Set(HttpResponse response)
         {
+			// set headers
+			response.Headers["Server"] = "server";
+            response.Headers["Date"] = DateTime.UtcNow.ToString("r");
+
+            // set connection
+			response.KeepAlive = false;
+            response.Headers["Connection"] = "close";
+
             string newLine = response.UseCrLf ? "\r\n" : "\n";
 			StringBuilder headers = new StringBuilder();
             
