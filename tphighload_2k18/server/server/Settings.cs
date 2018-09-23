@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace server
 {
@@ -10,7 +11,7 @@ namespace server
         private string _defaultDirectioryFile = "index.html";
         private short _port = 80;
         private short _threadLimit = 0;
-        
+
         public string Root
         {
             get
@@ -114,6 +115,42 @@ namespace server
                 {
                     Root = documentRoot;
                 }
+            }
+        }
+        
+		public static Settings LoadSettings(string settingsFilePath)
+        {
+            try
+            {
+				var regex = new Regex(@"^(?<property>\w*)\s(?<value>[^#]*)",
+				                      RegexOptions.Compiled | RegexOptions.Singleline);
+
+                Dictionary<string, string> settings = new Dictionary<string, string>();
+                var lines = File.ReadAllLines(settingsFilePath);
+
+                foreach (var line in lines)
+                {
+                    var match = regex.Match(line);
+
+                    if (match.Success)
+                    {
+						var key = match.Groups["property"].Value.Trim();
+                        var value = match.Groups["value"].Value.Trim();
+                        settings[key] = value;
+                    }
+                }
+
+                return new Settings(settings);
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("Cannot load config file. Is the specified path '{0}' correct?", settingsFilePath);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Oops, something going wrong.\n{0}", ex);
+                return null;
             }
         }
     }
