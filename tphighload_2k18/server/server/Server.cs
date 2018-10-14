@@ -41,6 +41,22 @@ namespace server
                 // установка макс количества подключений к пулу потоков
 				Console.WriteLine($"Current thread_limit: {Settings.ThreadLimit}");
                 ThreadPool.SetMaxThreads(Settings.ThreadLimit, Settings.ThreadLimit);
+
+                // 1 cpu
+                //ThreadPool.SetMinThreads(1, 1);
+                //ThreadPool.SetMaxThreads(1, 1);
+
+                // 2 cpu
+                //ThreadPool.SetMinThreads(2, 1);
+                //ThreadPool.SetMaxThreads(2, 1);
+
+                ThreadPool.SetMinThreads(1, 2);
+                ThreadPool.SetMaxThreads(1, 2);
+
+                // without await for processingAsync(tcpClient) 
+                // and
+                // without SetMaxThreads/SetMinThreads
+                // gives best results
             }
 
             TcpListener tcpListener = null;
@@ -51,7 +67,8 @@ namespace server
 
                 while (true)
                 {
-					TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
+                    TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
+                    //await ProcessingAsync(tcpClient);
                     ProcessingAsync(tcpClient);
                 }
             }
